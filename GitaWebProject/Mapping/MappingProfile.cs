@@ -10,7 +10,7 @@ namespace GitaWebProject.Mapping
         {
             CreateMap<DeletedProduct, DeletedProductModel>();
             CreateMap<Product, ProductModel>();
-            CreateMap<UserChanges, UserChangesModel>();
+            CreateMap<UserChange, UserChangesModel>();
         }
     }
 }

@@ -14,15 +14,42 @@ namespace GitaWebProject.Data
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public virtual DbSet<Product> Products { get; set; } = null!;
+        public virtual DbSet<DeletedProduct> DeletedProducts { get; set; } = null!;
+        public virtual DbSet<Product> Product { get; set; } = null!;
+        public virtual DbSet<UserChange> UserChanges { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            //builder.ConfigureIdentity();
+            builder.HasDefaultSchema("Production");
 
-            builder.Entity<Product>(b =>
+            builder.ConfigureIdentity();
+
+            builder.Entity<DeletedProduct>(b =>
+            {
+                b.HasOne(t => t.CreatedBy)
+                    .WithMany()
+                    .HasForeignKey(t => t.CreatedById)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(t => t.ModifiedBy)
+                    .WithMany()
+                    .HasForeignKey(t => t.ModifiedById)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(t => t.DeletedBy)
+                    .WithMany()
+                    .HasForeignKey(t => t.DeletedById)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasQueryFilter(t => !t.DeletedAt.HasValue);
+            });
+
+            builder.Entity<UserChange>(b =>
             {
                 b.HasOne(t => t.CreatedBy)
                     .WithMany()

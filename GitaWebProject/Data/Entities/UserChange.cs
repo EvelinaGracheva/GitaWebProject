@@ -4,7 +4,7 @@ using static GitaWebProject.Data.Enum;
 
 namespace GitaWebProject.Data.Entities
 {
-    public class UserChanges : IEntity<int>, IEntityAudit
+    public class UserChange : IEntity<int>, IEntityAudit
     {
         #region Interface Implementations
 

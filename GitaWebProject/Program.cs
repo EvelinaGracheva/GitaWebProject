@@ -1,6 +1,8 @@
 using GitaWebProject.Data;
 using GitaWebProject.Interfaces;
+using GitaWebProject.Mapping;
 using GitaWebProject.Services;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -32,14 +34,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-//builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "GitaWebProject", Version = "v1" });
 });
 
+builder.Services.AddResponseCaching();
+builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IActionContextAccessor, ActionContextAccessor>();
+
 builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IDeleteProductService, DeleteProductService>();
+builder.Services.AddTransient<IUserChangesService, UserChangesService>();
 
 var app = builder.Build();
 
@@ -51,8 +60,9 @@ if (!app.Environment.IsDevelopment())
 
 app.UseDeveloperExceptionPage();
 app.UseMigrationsEndPoint();
+
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "CarSales v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Gita Web Project"));
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

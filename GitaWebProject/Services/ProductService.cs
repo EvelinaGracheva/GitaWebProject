@@ -1,146 +1,148 @@
-﻿using GitaWebProject.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using GitaWebProject.Data;
+using GitaWebProject.Data.Entities;
+using GitaWebProject.Interfaces;
+using GitaWebProject.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GitaWebProject.Services
 {
     public class ProductService : IProductService
     {
+        private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
         private readonly ILogger<ProductService> _logger;
 
-        public ProductService(ILogger<ProductService> logger)
+        public ProductService(ApplicationDbContext context, IMapper mapper, ILogger<ProductService> logger)
         {
+            _context = context;
+            _mapper = mapper;
             _logger = logger;
         }
+
+        public async Task<List<ProductModel>> AllAsync()
+        {
+            var query = _context.Product
+                .AsNoTracking()
+                .ProjectTo<ProductModel>(_mapper.ConfigurationProvider);
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<ProductModel?> GetByIdAsync(int id)
+        {
+            var item = await _context.Product
+                .AsNoTracking()
+                .ProjectTo<ProductModel>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(t => t.ProductID == id);
+
+            return item;
+        }
+
+        public async Task<ProductModel> CreateAsync(ProductModel model)
+        {
+            var item = _mapper.Map<Product>(model);
+            await _context.AddAsync(item);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ProductModel>(item);
+        }
+
+        public async Task<ProductModel?> UpdateAsync(ProductModel model)
+        {
+            var item = await _context.Product.FindAsync(model.ProductID);
+
+            if (item is null)
+            {
+                return null;
+            }
+
+            _mapper.Map(model, item);
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ProductModel>(item);
+        }
+
+        public async Task<ProductModel?> DeleteAsync(int id)
+        {
+            var item = await _context.Product.FirstOrDefaultAsync(t => t.ProductID == id);
+
+            if (item is null)
+            {
+                return null;
+            }
+
+            using var transaction = _context.Database.BeginTransaction();
+            {
+                try
+                {
+                    _context.Remove(item);
+
+                    var model = new DeletedProductModel { };
+                    var deletedItem = _mapper.Map<DeletedProduct>(model);
+
+                    await _context.AddAsync(deletedItem);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation($"ProductService DeleteAsync - Product was deleted from table Production.Products - Id: {item.ProductID}");
+
+                    transaction.Commit();
+                    return _mapper.Map<ProductModel>(item);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"ProductService DeleteAsync Ex: {ex}");
+                    _logger.LogInformation($"ProductService DeleteAsync - Error during delete product - Id: {item.ProductID}");
+                    transaction.Rollback();
+                    return null;
+                }
+            }
+        }
+
+        public async Task<List<ProductModel>> FilterAsync(FilterModel model)
+        {
+            var query = _context.Product
+                .AsNoTracking()
+                .ProjectTo<ProductModel>(_mapper.ConfigurationProvider);
+
+            if (model.ListPrice.HasValue)
+            {
+                query = query.Where(t => t.ListPrice == model.ListPrice);
+            }
+            if (!string.IsNullOrEmpty(model.Name))
+            {
+                query = query.Where(t => t.Name.Contains(model.Name));
+            }
+            if (!string.IsNullOrEmpty(model.ProductNumber))
+            {
+                query = query.Where(t => t.ProductNumber.Contains(model.ProductNumber));
+            }
+            if (!string.IsNullOrEmpty(model.Color))
+            {
+                query = query.Where(t => t.Color!.Contains(model.Color));
+            }
+            if (!string.IsNullOrEmpty(model.Size))
+            {
+                query = query.Where(t => t.Size!.Contains(model.Size));
+            }
+            if (model.Weight.HasValue)
+            {
+                query = query.Where(t => t.Weight == model.Weight);
+            }
+            if (model.SellEndDate.HasValue)
+            {
+                query = query.Where(t => t.SellEndDate == model.SellEndDate);
+            }
+            if (model.SellStartDate.HasValue)
+            {
+                query = query.Where(t => t.SellStartDate == model.SellStartDate);
+            }
+
+            var items = await query.ToListAsync();
+
+            return items;
+        }
     }
-
-    //public async Task<List<ArticleListItemModel>> AllAsync()
-    //{
-    //    var query = _context.Articles
-    //        .AsNoTracking()
-    //        .ProjectTo<ArticleListItemModel>(_mapper.ConfigurationProvider);
-
-    //    var language = _httpContextAccessor.HttpContext?.GetLanguage();
-
-    //    if (language == Language.RU)
-    //    {
-    //        query = query.Where(t => t.TitleRu != null);
-    //    }
-
-    //    return await query.ToListAsync();
-    //}
-
-    //public async Task<List<ArticleListItemModel>> Top10Async()
-    //{
-    //    var query = _context.Articles
-    //        .AsNoTracking()
-    //        .OrderByDescending(t => t.CreatedAt)
-    //        .ProjectTo<ArticleListItemModel>(_mapper.ConfigurationProvider);
-
-    //    var language = _httpContextAccessor.HttpContext?.GetLanguage();
-
-    //    if (language == Language.RU)
-    //    {
-    //        query = query.Where(t => t.TitleRu != null);
-    //    }
-
-    //    return await query.ToListAsync();
-    //}
-
-    //public async Task<List<ArticleListItemModel>> GetByCategoryIdAsync(int id)
-    //{
-    //    var query = _context.Articles
-    //        .AsNoTracking()
-    //        .OrderByDescending(t => t.CreatedAt)
-    //        .Where(t => t.CategoryId == id)
-    //        .ProjectTo<ArticleListItemModel>(_mapper.ConfigurationProvider);
-
-    //    var language = _httpContextAccessor.HttpContext?.GetLanguage();
-
-    //    if (language == Language.RU)
-    //    {
-    //        query = query.Where(t => t.TitleRu != null);
-    //    }
-
-    //    return await query.ToListAsync();
-    //}
-
-    //public async Task<List<ArticleListItemModel>> GetLastItemsByCategoryIdAsync(int id)
-    //{
-    //    var query = _context.Articles
-    //        .AsNoTracking()
-    //        .OrderByDescending(t => t.CreatedAt)
-    //        .Where(t => t.CategoryId == id)
-    //        .ProjectTo<ArticleListItemModel>(_mapper.ConfigurationProvider);
-
-    //    var language = _httpContextAccessor.HttpContext?.GetLanguage();
-
-    //    if (language == Language.RU)
-    //    {
-    //        query = query.Where(t => t.TitleRu != null);
-    //    }
-
-    //    return await query.ToListAsync();
-    //}
-
-    //public async Task<List<SelectListItem>> GetCategoriesAsync()
-    //{
-    //    return await _context.Categories.Select(t => new SelectListItem
-    //    {
-    //        Text = t.Name,
-    //        Value = t.Id.ToString()
-    //    }).ToListAsync();
-    //}
-
-    //public async Task<ArticleReadModel?> GetByIdAsync(int id)
-    //{
-    //    var item = await _context.Articles
-    //        .AsNoTracking()
-    //        .ProjectTo<ArticleReadModel>(_mapper.ConfigurationProvider)
-    //        .FirstOrDefaultAsync(t => t.Id == id);
-
-    //    return item;
-    //}
-
-    //public async Task<ArticleReadModel> CreateAsync(ArticleModel model)
-    //{
-    //    var item = _mapper.Map<Article>(model);
-    //    await _context.AddAsync(item);
-    //    await _context.SaveChangesAsync();
-
-    //    return _mapper.Map<ArticleReadModel>(item);
-    //}
-
-    //public async Task<ArticleReadModel?> UpdateAsync(ArticleModel model)
-    //{
-    //    var item = await _context.Articles.FindAsync(model.Id);
-
-    //    if (item is null)
-    //    {
-    //        return null;
-    //    }
-
-    //    _mapper.Map(model, item);
-
-    //    await _context.SaveChangesAsync();
-
-    //    return _mapper.Map<ArticleReadModel>(item);
-    //}
-
-    //public async Task<ArticleReadModel?> DeleteAsync(int id)
-    //{
-    //    var item = await _context.Articles.Include(t => t.Medias).FirstOrDefaultAsync(t => t.Id == id);
-
-    //    if (item is null)
-    //    {
-    //        return null;
-    //    }
-
-    //    _context.Remove(item);
-    //    _context.Medias.RemoveRange(item.Medias);
-    //    await _context.SaveChangesAsync();
-
-    //    var media = _mediaManager.GetByArticleIdAsync(id);
-    //    await _mediaManager.DeleteByIdAsync(media.Id);
-
-    //    return _mapper.Map<ArticleReadModel>(item);
-    //}
 }

@@ -3,33 +3,8 @@ using GitaWebProject.Interfaces;
 
 namespace GitaWebProject.Data.Entities
 {
-    public class Product : IEntity<int>, IEntityAudit
+    public class Product
     {
-        #region Interface Implementations
-
-        public int Id { get; set; }
-
-
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime? ModifiedAt { get; set; }
-
-        public DateTime? DeletedAt { get; set; }
-
-        public Guid CreatedById { get; set; }
-
-        public virtual User? CreatedBy { get; set; }
-
-        public Guid? ModifiedById { get; set; }
-
-        public virtual User? ModifiedBy { get; set; }
-
-        public Guid? DeletedById { get; set; }
-
-        public virtual User? DeletedBy { get; set; }
-
-
-        #endregion
         public int ProductID { get; set; }
         public string Name { get; set; } = null!;
         public string ProductNumber { get; set; } = null!;

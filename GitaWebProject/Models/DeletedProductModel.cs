@@ -23,6 +23,6 @@
         public DateTime? DiscontinuedDate { get; set; }
         public Guid Rowguid { get; set; }
         public DateTime ModifiedDate { get; set; }
-        public DateTime DateOfDeletion { get; set; }
+        public DateTime DateOfDeletion { get; set; } = DateTime.Now;
     }
 }
