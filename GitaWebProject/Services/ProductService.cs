@@ -11,12 +11,20 @@ namespace GitaWebProject.Services
     public class ProductService : IProductService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDeleteProductService _deleteProductService;
+        private readonly IUserChangesService _userChangesService;
         private readonly IMapper _mapper;
         private readonly ILogger<ProductService> _logger;
 
-        public ProductService(ApplicationDbContext context, IMapper mapper, ILogger<ProductService> logger)
+        public ProductService(ApplicationDbContext context,
+                              IDeleteProductService deleteProductService,
+                              IUserChangesService userChangesService,
+                              IMapper mapper,
+                              ILogger<ProductService> logger)
         {
             _context = context;
+            _deleteProductService = deleteProductService;
+            _userChangesService = userChangesService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -44,6 +52,18 @@ namespace GitaWebProject.Services
         {
             var item = _mapper.Map<Product>(model);
             await _context.AddAsync(item);
+
+            var changes = new UserChangesModel()
+            {
+                OperationDate = DateTime.Now,
+                OperationType = Data.Enum.OperationType.Create,
+                TableName = "Production.Product",
+                UserName = "some user name",
+                Values = $"ProductName {model.Name}, ProductCreated: {DateTime.Now}",
+            };
+
+            await _userChangesService.CreateAsync(changes);
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<ProductModel>(item);
@@ -60,6 +80,17 @@ namespace GitaWebProject.Services
 
             _mapper.Map(model, item);
 
+            var changes = new UserChangesModel()
+            {
+                OperationDate = DateTime.Now,
+                OperationType = Data.Enum.OperationType.Update,
+                TableName = "Production.Product",
+                UserName = "some user name",
+                Values = $"ProductId:{item.Id}, ProductName {model.Name}, ProductUpdated: {DateTime.Now}",
+            };
+
+            await _userChangesService.CreateAsync(changes);
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<ProductModel>(item);
@@ -74,31 +105,30 @@ namespace GitaWebProject.Services
                 return null;
             }
 
-            using var transaction = _context.Database.BeginTransaction();
+            var result = await _deleteProductService.DeleteProductByIdAsync(id);
+
+            if (result)
             {
-                try
+                var changes = new UserChangesModel()
                 {
-                    _context.Remove(item);
+                    OperationDate = DateTime.Now,
+                    OperationType = Data.Enum.OperationType.Delete,
+                    TableName = "Production.Product",
+                    UserName = "some user name",
+                    Values = $"ProductId:{item.Id}, ProductName {item.Name}, ProductDeleted: {DateTime.Now}",
+                };
 
-                    var model = new DeletedProductModel { };
-                    var deletedItem = _mapper.Map<DeletedProduct>(model);
+                await _userChangesService.CreateAsync(changes);
 
-                    await _context.AddAsync(deletedItem);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation($"ProductService DeleteAsync - Product was deleted from table Production.Products - Id: {item.ProductID}");
-
-                    transaction.Commit();
-                    return _mapper.Map<ProductModel>(item);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"ProductService DeleteAsync Ex: {ex}");
-                    _logger.LogInformation($"ProductService DeleteAsync - Error during delete product - Id: {item.ProductID}");
-                    transaction.Rollback();
-                    return null;
-                }
+                _logger.LogInformation($"ProductService DeleteAsync - Product was deleted from table Production.Products - Id: {item.ProductID}");
             }
+            else
+            {
+                _logger.LogInformation($"ProductService DeleteAsync - Error during delete product - Id: {item.ProductID}");
+                return null;
+            }
+
+            return _mapper.Map<ProductModel>(item);
         }
 
         public async Task<List<ProductModel>> FilterAsync(FilterModel model)
