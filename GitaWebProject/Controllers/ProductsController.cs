@@ -33,7 +33,7 @@ namespace GitaWebProject.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task<ProductModel> CreateAsync(ProductCreateModel model)
+        public async Task<ProductModel?> CreateAsync(ProductCreateModel model)
         {
             if (ModelState.IsValid)
                 return await _productService.CreateAsync(model);

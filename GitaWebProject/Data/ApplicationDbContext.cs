@@ -1,11 +1,11 @@
 ﻿using GitaWebProject.Data.Entities;
-using GitaWebProject.Data.Entities.Identity;
+using GitaWebProject.Interfaces;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GitaWebProject.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User, Role, Guid, UserClaim, UserRole, UserLogin, RoleClaim, UserToken>
+    public class ApplicationDbContext : DbContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -24,52 +24,18 @@ namespace GitaWebProject.Data
 
             builder.HasDefaultSchema("Production");
 
-            builder.ConfigureIdentity();
-
             builder.Entity<DeletedProduct>(b =>
             {
-                b.HasOne(t => t.CreatedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.CreatedById)
-                    .IsRequired()
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasOne(t => t.ModifiedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.ModifiedById)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasOne(t => t.DeletedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.DeletedById)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasQueryFilter(t => !t.DeletedAt.HasValue);
+                b.Property(t => t.ListPrice).HasPrecision(18, 4);
+                b.Property(t => t.StandardCost).HasPrecision(18, 4);
+                b.Property(t => t.Weight).HasPrecision(18, 4);
             });
 
-            builder.Entity<UserChange>(b =>
+            builder.Entity<Product>(b =>
             {
-                b.HasOne(t => t.CreatedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.CreatedById)
-                    .IsRequired()
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasOne(t => t.ModifiedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.ModifiedById)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasOne(t => t.DeletedBy)
-                    .WithMany()
-                    .HasForeignKey(t => t.DeletedById)
-                    .IsRequired(false)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                b.HasQueryFilter(t => !t.DeletedAt.HasValue);
+                b.Property(t => t.ListPrice).HasPrecision(18, 4);
+                b.Property(t => t.StandardCost).HasPrecision(18, 4);
+                b.Property(t => t.Weight).HasPrecision(18, 4);
             });
         }
     }

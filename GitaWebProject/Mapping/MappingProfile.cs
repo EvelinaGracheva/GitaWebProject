@@ -9,8 +9,19 @@ namespace GitaWebProject.Mapping
         public MappingProfile()
         {
             CreateMap<DeletedProduct, DeletedProductModel>();
+            CreateMap<DeletedProductModel, DeletedProduct>();
+
             CreateMap<Product, ProductModel>();
+            CreateMap<ProductModel, Product>();
+
+            CreateMap<Product, ProductCreateModel>();
+            CreateMap<ProductCreateModel, Product>();
+
+            CreateMap<Product, ProductUpdateModel>();
+            CreateMap<ProductUpdateModel, Product>();
+
             CreateMap<UserChange, UserChangesModel>();
+            CreateMap<UserChangesModel, UserChange>();
         }
     }
 }

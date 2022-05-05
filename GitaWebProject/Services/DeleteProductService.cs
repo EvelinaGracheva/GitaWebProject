@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using GitaWebProject.Data;
 using GitaWebProject.Data.Entities;
 using GitaWebProject.Interfaces;

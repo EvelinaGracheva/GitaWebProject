@@ -4,8 +4,6 @@ namespace GitaWebProject.Models
 {
     public class ProductCreateModel
     {
-        public int ProductID { get; set; }
-
         [Required(ErrorMessage = "Name Is Required")]
         [StringLength(50, ErrorMessage = "Name cannot be longer than 50 characters")]
         public string Name { get; set; } = null!;
@@ -16,7 +14,7 @@ namespace GitaWebProject.Models
 
         [Required(ErrorMessage = "MakeFlag Is Required")]
         public bool MakeFlag { get; set; }
-        
+
         [Required(ErrorMessage = "FinishedGoodsFlag Is Required")]
         public bool FinishedGoodsFlag { get; set; }
 
@@ -24,10 +22,10 @@ namespace GitaWebProject.Models
         public string? Color { get; set; }
 
         [Required(ErrorMessage = "SafetyStockLevel Is Required")]
-        public int SafetyStockLevel { get; set; }
+        public short SafetyStockLevel { get; set; }
 
         [Required(ErrorMessage = "ReorderPoint Is Required")]
-        public int ReorderPoint { get; set; }
+        public short ReorderPoint { get; set; }
 
         [Required(ErrorMessage = "StandardCost Is Required")]
         public decimal StandardCost { get; set; }
@@ -48,17 +46,17 @@ namespace GitaWebProject.Models
 
         [StringLength(2, ErrorMessage = "Color cannot be longer than 2 characters")]
         public string? Class { get; set; }
-        
+
         [StringLength(2, ErrorMessage = "Color cannot be longer than 2 characters")]
         public string? Style { get; set; }
-        
+
         [Required(ErrorMessage = "SellStartDate Is Required")]
         public DateTime SellStartDate { get; set; }
-        
+
         public DateTime? SellEndDate { get; set; }
 
         public DateTime? DiscontinuedDate { get; set; }
-        
+
         [Required(ErrorMessage = "Rowguid Is Required")]
         public Guid Rowguid { get; set; }
 

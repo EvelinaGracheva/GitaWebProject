@@ -1,7 +1,4 @@
-﻿using GitaWebProject.Data.Entities.Identity;
-using GitaWebProject.Interfaces;
-
-namespace GitaWebProject.Data.Entities
+﻿namespace GitaWebProject.Data.Entities
 {
     public class Product
     {
@@ -11,8 +8,8 @@ namespace GitaWebProject.Data.Entities
         public bool MakeFlag { get; set; }
         public bool FinishedGoodsFlag { get; set; }
         public string? Color { get; set; }
-        public int SafetyStockLevel { get; set; }
-        public int ReorderPoint { get; set; }
+        public short SafetyStockLevel { get; set; }
+        public short ReorderPoint { get; set; }
         public decimal StandardCost { get; set; }
         public decimal ListPrice { get; set; }
         public string? Size { get; set; }

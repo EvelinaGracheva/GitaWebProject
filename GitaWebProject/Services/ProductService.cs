@@ -31,21 +31,37 @@ namespace GitaWebProject.Services
 
         public async Task<List<ProductModel>> AllAsync()
         {
-            var query = _context.Product
-                .AsNoTracking()
-                .ProjectTo<ProductModel>(_mapper.ConfigurationProvider);
+            try
+            {
+                var query = _context.Product
+                    .AsNoTracking()
+                    .ProjectTo<ProductModel>(_mapper.ConfigurationProvider);
 
-            return await query.ToListAsync();
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ProductService AllAsync Fail, Ex: {ex}");
+                return null;
+            }
         }
 
         public async Task<ProductModel?> GetByIdAsync(int id)
         {
-            var item = await _context.Product
-                .AsNoTracking()
-                .ProjectTo<ProductModel>(_mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(t => t.ProductID == id);
+            try
+            {
+                var item = await _context.Product
+                    .AsNoTracking()
+                    .ProjectTo<ProductModel>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(t => t.ProductID == id);
 
-            return item;
+                return item;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ProductService GetByIdAsync Fail, Ex: {ex}");
+                return null;
+            }
         }
 
         public async Task<ProductModel> CreateAsync(ProductCreateModel model)
@@ -78,22 +94,30 @@ namespace GitaWebProject.Services
                 return null;
             }
 
-            _mapper.Map(model, item);
-
-            var changes = new UserChangesModel()
+            try
             {
-                OperationDate = DateTime.Now,
-                OperationType = Data.Enum.OperationType.Update,
-                TableName = "Production.Product",
-                UserName = "some user name",
-                Values = $"ProductId:{item.ProductID}, ProductName {model.Name}, ProductUpdated: {DateTime.Now}",
-            };
+                _mapper.Map(model, item);
 
-            await _userChangesService.CreateAsync(changes);
+                var changes = new UserChangesModel()
+                {
+                    OperationDate = DateTime.Now,
+                    OperationType = Data.Enum.OperationType.Update,
+                    TableName = "Production.Product",
+                    UserName = "some user name",
+                    Values = $"ProductId:{item.ProductID}, ProductName {model.Name}, ProductUpdated: {DateTime.Now}",
+                };
 
-            await _context.SaveChangesAsync();
+                await _userChangesService.CreateAsync(changes);
 
-            return _mapper.Map<ProductModel>(item);
+                await _context.SaveChangesAsync();
+
+                return _mapper.Map<ProductModel>(item);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"ProductService UpdateAsync Fail, Ex: {ex}");
+                return null;
+            }
         }
 
         public async Task<ProductModel?> DeleteAsync(int id)
