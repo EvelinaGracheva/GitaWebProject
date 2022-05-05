@@ -24,7 +24,7 @@ namespace GitaWebProject.Controllers
             => await _productService.GetByIdAsync(id);
 
         [HttpPut("Update")]
-        public async Task<ProductModel?> UpdateAsync(ProductModel model)
+        public async Task<ProductModel?> UpdateAsync(ProductUpdateModel model)
         {
             if (ModelState.IsValid)
                 return await _productService.UpdateAsync(model);
@@ -33,8 +33,13 @@ namespace GitaWebProject.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task<ProductModel> CreateAsync(ProductModel model)
-            => await _productService.CreateAsync(model);
+        public async Task<ProductModel> CreateAsync(ProductCreateModel model)
+        {
+            if (ModelState.IsValid)
+                return await _productService.CreateAsync(model);
+            else
+                return null;
+        }
 
         [HttpPost("Filter")]
         public async Task<List<ProductModel>> FilterAsync(FilterModel model)

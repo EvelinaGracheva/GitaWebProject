@@ -48,7 +48,7 @@ namespace GitaWebProject.Services
             return item;
         }
 
-        public async Task<ProductModel> CreateAsync(ProductModel model)
+        public async Task<ProductModel> CreateAsync(ProductCreateModel model)
         {
             var item = _mapper.Map<Product>(model);
             await _context.AddAsync(item);
@@ -69,7 +69,7 @@ namespace GitaWebProject.Services
             return _mapper.Map<ProductModel>(item);
         }
 
-        public async Task<ProductModel?> UpdateAsync(ProductModel model)
+        public async Task<ProductModel?> UpdateAsync(ProductUpdateModel model)
         {
             var item = await _context.Product.FindAsync(model.ProductID);
 
@@ -86,7 +86,7 @@ namespace GitaWebProject.Services
                 OperationType = Data.Enum.OperationType.Update,
                 TableName = "Production.Product",
                 UserName = "some user name",
-                Values = $"ProductId:{item.Id}, ProductName {model.Name}, ProductUpdated: {DateTime.Now}",
+                Values = $"ProductId:{item.ProductID}, ProductName {model.Name}, ProductUpdated: {DateTime.Now}",
             };
 
             await _userChangesService.CreateAsync(changes);
@@ -115,7 +115,7 @@ namespace GitaWebProject.Services
                     OperationType = Data.Enum.OperationType.Delete,
                     TableName = "Production.Product",
                     UserName = "some user name",
-                    Values = $"ProductId:{item.Id}, ProductName {item.Name}, ProductDeleted: {DateTime.Now}",
+                    Values = $"ProductId:{item.ProductID}, ProductName {item.Name}, ProductDeleted: {DateTime.Now}",
                 };
 
                 await _userChangesService.CreateAsync(changes);
